@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  go-app:
+    build:
+      context: ./go-app
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GOPROXY=https://goproxy.cn,direct
+    networks:
+      - myapp-network
+
+  nextjs-app:
+    build:
+      context: ./nextjs-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - myapp-network
+
+  wordpress:
+    image: wordpress:latest
+    volumes:
+      - ./wordpress-app:/var/www/html/wp-content/plugins/plugin-name
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    networks:
+      - myapp-network
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:
+      - myapp-network
+
+networks:
+  myapp-network:
+    driver: bridge
+
+volumes:
+  db_data:
